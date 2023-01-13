@@ -23,6 +23,7 @@ import ch.heigvd.iict.and.rest.viewmodels.ContactsViewModelFactory
 fun AppContact(application: ContactsApplication, contactsViewModel : ContactsViewModel = viewModel(factory= ContactsViewModelFactory(application))) {
     val context = LocalContext.current
     val contacts : List<Contact> by contactsViewModel.allContacts.observeAsState(initial = emptyList())
+    val editionMode = true
 
     Scaffold(
         topBar = {
@@ -49,9 +50,14 @@ fun AppContact(application: ContactsApplication, contactsViewModel : ContactsVie
     )
     { padding ->
         Column(modifier = Modifier.padding(padding)) {  }
-        ScreenContactList(contacts) { selectedContact ->
-            Toast.makeText(context, "TODO - Edition de ${selectedContact.firstname} ${selectedContact.name}", Toast.LENGTH_SHORT).show()
+        if(editionMode){
+            ScreenContactEditor()
+        } else {
+            ScreenContactList(contacts) { selectedContact ->
+                //Toast.makeText(context, "TODO - Edition de ${selectedContact.firstname} ${selectedContact.name}", Toast.LENGTH_SHORT).show()
+            }
         }
+
     }
 
 }
