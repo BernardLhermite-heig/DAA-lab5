@@ -22,7 +22,7 @@ import ch.heigvd.iict.and.rest.models.PhoneType
 import ch.heigvd.iict.and.rest.ui.theme.MyComposeApplicationTheme
 
 @Composable
-fun ScreenContactEditor() {
+fun ScreenContactEditor(contact: Contact? = null, onContactSaved: (Contact) -> Unit) {
     Column{
         myTextField("Name","")
         myTextField("Firstname","")

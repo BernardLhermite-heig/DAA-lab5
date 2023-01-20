@@ -12,5 +12,5 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "Labo6"
+rootProject.name = "DAA-lab5"
 include ':app'
