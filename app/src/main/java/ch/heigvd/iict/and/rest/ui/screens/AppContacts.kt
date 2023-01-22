@@ -31,12 +31,18 @@ fun AppContact(
     val context = LocalContext.current
     val contacts: List<Contact> by contactsViewModel.allContacts.observeAsState(initial = emptyList())
     var editionMode by remember { mutableStateOf(false) }
+    var selectedContact: Contact? by remember { mutableStateOf(null) }
+
+    fun closeEdition() {
+        selectedContact = null
+        editionMode = false
+    }
 
     Scaffold(
         topBar = {
             if (editionMode) {
                 BackTopBar {
-                    editionMode = false
+                    closeEdition()
                 }
             } else {
                 HomeTopBar(contactsViewModel)
@@ -57,22 +63,19 @@ fun AppContact(
         Column(modifier = Modifier.padding(padding)) { }
 
         Box(Modifier.padding(8.dp)) {
-            var selectedContact: Contact? by remember { mutableStateOf(null) }
-
             if (editionMode) {
                 ScreenContactEditor(selectedContact) { type, contact ->
                     when (type) {
-                        ActionType.CANCEL -> {
-                            selectedContact = null
-                        }
                         ActionType.SAVE -> {
                             contactsViewModel.save(contact!!)
                         }
                         ActionType.DELETE -> {
                             contactsViewModel.delete(contact!!)
                         }
+                        ActionType.CANCEL -> {}
                     }
-                    editionMode = false
+                    
+                    closeEdition()
                 }
             } else {
                 ScreenContactList(contacts) { contact ->

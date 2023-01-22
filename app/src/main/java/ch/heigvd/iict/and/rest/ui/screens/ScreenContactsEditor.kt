@@ -1,8 +1,11 @@
 package ch.heigvd.iict.and.rest.ui.screens
 
+import android.view.KeyEvent
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -13,32 +16,44 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import ch.heigvd.iict.and.rest.R
 import ch.heigvd.iict.and.rest.models.Contact
 import ch.heigvd.iict.and.rest.models.PhoneType
-import java.text.DateFormat
+import ch.heigvd.iict.and.rest.models.Status
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import java.util.*
 
 enum class ActionType {
     CANCEL, DELETE, SAVE
 }
 
+private val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
+
+
 @Composable
 fun ScreenContactEditor(
     contact: Contact? = null,
     onClose: (ActionType, Contact?) -> Unit
 ) {
-    val newContact = contact?.copy() ?: Contact.empty()
-
-    var formattedBirthday = newContact.birthday?.let {
-        "${it.get(Calendar.DAY_OF_MONTH)}.${it.get(Calendar.MONTH + 1)}.${it.get(Calendar.YEAR)}"
-    } ?: ""
+    val newContact = remember { contact?.copy() ?: Contact.empty() }
+    val formattedBirthday = remember {
+        mutableStateOf(
+            newContact.birthday?.let {
+                "${it.get(Calendar.DAY_OF_MONTH)}.${it.get(Calendar.MONTH + 1)}.${it.get(Calendar.YEAR)}"
+            } ?: ""
+        )
+    }
     val phoneTypes = PhoneType.values()
-    val (selectedPhoneType, setSelectedPhoneType) = remember {
+    val selectedPhoneType = remember {
         mutableStateOf(contact?.type ?: phoneTypes.first())
     }
 
@@ -57,8 +72,8 @@ fun ScreenContactEditor(
         TextFieldWithLabel("E-mail", newContact.email) {
             newContact.email = it
         }
-        TextFieldWithLabel("Birthday", formattedBirthday) {
-            formattedBirthday = it
+        TextFieldWithLabel("Birthday", formattedBirthday.value) {
+            formattedBirthday.value = it
         }
         TextFieldWithLabel("Address", newContact.address) {
             newContact.address = it
@@ -78,18 +93,18 @@ fun ScreenContactEditor(
                 Row(
                     modifier = Modifier
                         .selectable(
-                            selected = selectedPhoneType == type,
+                            selected = selectedPhoneType.value == type,
                             onClick = {
-                                setSelectedPhoneType(type)
+                                selectedPhoneType.value = type
                                 newContact.type = type
                             }
                         ),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     RadioButton(
-                        selected = selectedPhoneType == type,
+                        selected = selectedPhoneType.value == type,
                         onClick = {
-                            setSelectedPhoneType(type)
+                            selectedPhoneType.value = type
                             newContact.type = type
                         },
                     )
@@ -120,10 +135,9 @@ fun ScreenContactEditor(
             }
 
             Button(onClick = {
-                DateFormat.getInstance().parse(formattedBirthday)?.let { date ->
-                    newContact.birthday = Calendar.getInstance().apply {
-                        time = date
-                    }
+                val date = LocalDate.parse(formattedBirthday.value, dateFormatter)
+                newContact.birthday = Calendar.getInstance().apply {
+                    set(date.year, date.monthValue - 1, date.dayOfMonth)
                 }
 
                 onClose(ActionType.SAVE, newContact)
@@ -137,7 +151,8 @@ fun ScreenContactEditor(
 
 @Composable
 fun TextFieldWithLabel(label: String, value: String? = null, onChanged: (String) -> Unit = {}) {
-    val (text, setText) = remember { mutableStateOf(value ?: "") }
+    val focusManager = LocalFocusManager.current
+    val text = remember { mutableStateOf(value ?: "") }
 
     Row(
         modifier = Modifier
@@ -154,16 +169,26 @@ fun TextFieldWithLabel(label: String, value: String? = null, onChanged: (String)
         )
 
         TextField(
-            value = text,
+            value = text.value,
             onValueChange = {
-                setText(it)
+                text.value = it
                 onChanged(it)
             },
             modifier = Modifier
-                .weight(4f),
+                .weight(4f)
+                .onPreviewKeyEvent {
+                    if (it.nativeKeyEvent.keyCode == KeyEvent.KEYCODE_TAB && it.nativeKeyEvent.action == KeyEvent.ACTION_DOWN) {
+                        focusManager.moveFocus(FocusDirection.Down)
+                        true
+                    } else {
+                        false
+                    }
+                },
             colors = TextFieldDefaults.textFieldColors(
                 backgroundColor = Color.Transparent,
             ),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
         )
     }
 }
@@ -171,6 +196,8 @@ fun TextFieldWithLabel(label: String, value: String? = null, onChanged: (String)
 val contacts = listOf(
     Contact(
         null,
+        null,
+        Status.NEW,
         "Dupont",
         "Roger",
         null,
@@ -183,6 +210,8 @@ val contacts = listOf(
     ),
     Contact(
         null,
+        null,
+        Status.NEW,
         "Dupond",
         "Tatiana",
         null,
@@ -195,6 +224,8 @@ val contacts = listOf(
     ),
     Contact(
         null,
+        null,
+        Status.NEW,
         "Toto",
         "Tata",
         null,

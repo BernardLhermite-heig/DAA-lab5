@@ -1,35 +1,36 @@
 package ch.heigvd.iict.and.rest.database
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
-import androidx.room.Update
+import androidx.room.*
 import ch.heigvd.iict.and.rest.models.Contact
+import ch.heigvd.iict.and.rest.models.Status
 
 @Dao
-interface ContactsDao {
+abstract class ContactsDao {
+    @Query("SELECT * FROM Contact WHERE status != :status")
+    protected abstract fun getContactsWithout(status: Status): LiveData<List<Contact>>
 
     @Insert
-    fun insert(contact: Contact) : Long
+    abstract fun insert(contact: Contact): Long
 
     @Update
-    fun update(contact: Contact)
+    abstract fun update(contact: Contact)
 
     @Delete
-    fun delete(contact: Contact)
+    abstract fun delete(contact: Contact)
 
-    @Query("SELECT * FROM Contact")
-    fun getAllContactsLiveData() : LiveData<List<Contact>>
+    fun getContacts(): LiveData<List<Contact>> = getContactsWithout(Status.DELETED)
 
     @Query("SELECT * FROM Contact WHERE id = :id")
-    fun getContactById(id : Long) : Contact?
+    abstract fun getContactById(id: Long): Contact?
 
     @Query("SELECT COUNT(*) FROM Contact")
-    fun getCount() : Int
+    abstract fun getCount(): Int
 
     @Query("DELETE FROM Contact")
-    fun clearAllContacts()
+    abstract fun clearAllContacts()
+
+    @Query("DELETE FROM Contact")
+    abstract fun deleteAll()
 
 }
