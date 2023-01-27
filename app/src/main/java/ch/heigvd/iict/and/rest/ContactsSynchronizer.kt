@@ -17,15 +17,15 @@ class ContactsSynchronizer(var uuid: UUID) {
         private val contactsURL = URL(baseURL, "contacts")
         private const val UUID_KEY = "UUID_KEY"
 
-        suspend fun getUUID(sharedPreferences: SharedPreferences): UUID =
+        suspend fun getOrNewUUID(sharedPreferences: SharedPreferences): UUID =
             withContext(Dispatchers.IO) {
                 val storedUUID = sharedPreferences.getString(UUID_KEY, null)?.let {
                     UUID.fromString(it)
                 }
-                storedUUID ?: getNewUUID(sharedPreferences)
+                storedUUID ?: newUUID(sharedPreferences)
             }
 
-        suspend fun getNewUUID(sharedPreferences: SharedPreferences): UUID =
+        suspend fun newUUID(sharedPreferences: SharedPreferences): UUID =
             withContext(Dispatchers.IO) {
                 val uuid = UUID.fromString(enrollURL.readText())
                 sharedPreferences.edit().putString(UUID_KEY, uuid.toString()).apply()

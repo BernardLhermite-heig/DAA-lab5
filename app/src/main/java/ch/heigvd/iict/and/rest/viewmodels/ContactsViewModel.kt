@@ -4,19 +4,27 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import androidx.preference.PreferenceManager
+import androidx.security.crypto.EncryptedSharedPreferences
+import androidx.security.crypto.MasterKeys
 import ch.heigvd.iict.and.rest.ContactsApplication
 import ch.heigvd.iict.and.rest.ContactsSynchronizer
 import ch.heigvd.iict.and.rest.models.Contact
 import kotlinx.coroutines.launch
 
-class ContactsViewModel(private val application: ContactsApplication) :
+class ContactsViewModel(application: ContactsApplication) :
     AndroidViewModel(application) {
-    private val prefs = PreferenceManager.getDefaultSharedPreferences(application)
+    private val prefs = EncryptedSharedPreferences.create(
+        "nom_du_fichier",
+        MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
+        application,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
+
 
     init {
         viewModelScope.launch {
-            val uuid = ContactsSynchronizer.getUUID(prefs)
+            val uuid = ContactsSynchronizer.getOrNewUUID(prefs)
             synchronizer = ContactsSynchronizer(uuid)
         }
     }
@@ -29,7 +37,7 @@ class ContactsViewModel(private val application: ContactsApplication) :
     fun enroll() {
         viewModelScope.launch {
             repository.deleteAll()
-            synchronizer.uuid = ContactsSynchronizer.getNewUUID(prefs)
+            synchronizer.uuid = ContactsSynchronizer.newUUID(prefs)
 
             val contacts = synchronizer.getContacts()
 

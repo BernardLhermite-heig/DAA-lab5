@@ -88,6 +88,7 @@ dependencies {
 
     // Preferences
     implementation 'androidx.preference:preference:1.2.0'
+    implementation 'androidx.security:security-crypto:1.0.0'
 
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
