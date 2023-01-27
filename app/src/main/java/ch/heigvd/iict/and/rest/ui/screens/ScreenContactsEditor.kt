@@ -29,6 +29,7 @@ import ch.heigvd.iict.and.rest.models.Contact
 import ch.heigvd.iict.and.rest.models.PhoneType
 import ch.heigvd.iict.and.rest.models.Status
 import java.time.LocalDate
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
@@ -48,7 +49,8 @@ fun ScreenContactEditor(
     val formattedBirthday = remember {
         mutableStateOf(
             newContact.birthday?.let {
-                "${it.get(Calendar.DAY_OF_MONTH)}.${it.get(Calendar.MONTH + 1)}.${it.get(Calendar.YEAR)}"
+                ZonedDateTime.ofInstant(it.toInstant(), it.timeZone.toZoneId())
+                    .format(dateFormatter)
             } ?: ""
         )
     }
@@ -135,9 +137,11 @@ fun ScreenContactEditor(
             }
 
             Button(onClick = {
-                val date = LocalDate.parse(formattedBirthday.value, dateFormatter)
-                newContact.birthday = Calendar.getInstance().apply {
-                    set(date.year, date.monthValue - 1, date.dayOfMonth)
+                if (formattedBirthday.value.isNotEmpty()) {
+                    val date = LocalDate.parse(formattedBirthday.value, dateFormatter)
+                    newContact.birthday = Calendar.getInstance().apply {
+                        set(date.year, date.monthValue - 1, date.dayOfMonth)
+                    }
                 }
 
                 onClose(ActionType.SAVE, newContact)

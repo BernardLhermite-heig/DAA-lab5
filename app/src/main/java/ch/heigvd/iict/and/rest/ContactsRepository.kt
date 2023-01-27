@@ -16,6 +16,15 @@ class ContactsRepository(private val contactsDao: ContactsDao) {
         contactsDao.insert(contact)
     }
 
+    suspend fun addFromRemote(contacts: List<Contact>) = withContext(Dispatchers.IO) {
+        contactsDao.insertAll(*contacts.map {
+            it.status = Status.OK
+            it.remoteId = it.id
+            it.id = null
+            it
+        }.toTypedArray())
+    }
+
     suspend fun update(contact: Contact) = withContext(Dispatchers.IO) {
         contact.status = Status.MODIFIED
 
@@ -32,5 +41,14 @@ class ContactsRepository(private val contactsDao: ContactsDao) {
 
     suspend fun deleteAll() = withContext(Dispatchers.IO) {
         contactsDao.deleteAll()
+    }
+
+    suspend fun exists(contact: Contact) = withContext(Dispatchers.IO) {
+        contactsDao.getContactById(contact.id!!) != null
+    }
+
+    suspend fun synchronize() = withContext(Dispatchers.IO) {
+        TODO("Not yet implemented")
+        true
     }
 }

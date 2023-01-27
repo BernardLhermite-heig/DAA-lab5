@@ -21,6 +21,8 @@ abstract class ContactsDao {
 
     fun getContacts(): LiveData<List<Contact>> = getContactsWithout(Status.DELETED)
 
+    fun getUnsynchronizedContacts(): LiveData<List<Contact>> = getContactsWithout(Status.OK)
+
     @Query("SELECT * FROM Contact WHERE id = :id")
     abstract fun getContactById(id: Long): Contact?
 
@@ -32,5 +34,8 @@ abstract class ContactsDao {
 
     @Query("DELETE FROM Contact")
     abstract fun deleteAll()
+
+    @Insert
+    abstract fun insertAll(vararg contacts: Contact)
 
 }

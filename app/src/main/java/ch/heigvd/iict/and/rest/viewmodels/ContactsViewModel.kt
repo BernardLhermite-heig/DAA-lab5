@@ -4,43 +4,57 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import androidx.preference.PreferenceManager
 import ch.heigvd.iict.and.rest.ContactsApplication
+import ch.heigvd.iict.and.rest.ContactsSynchronizer
 import ch.heigvd.iict.and.rest.models.Contact
 import kotlinx.coroutines.launch
 
-class ContactsViewModel(application: ContactsApplication) : AndroidViewModel(application) {
+class ContactsViewModel(private val application: ContactsApplication) :
+    AndroidViewModel(application) {
+    private val prefs = PreferenceManager.getDefaultSharedPreferences(application)
+
+    init {
+        viewModelScope.launch {
+            val uuid = ContactsSynchronizer.getUUID(prefs)
+            synchronizer = ContactsSynchronizer(uuid)
+        }
+    }
 
     private val repository = application.repository
+    private lateinit var synchronizer: ContactsSynchronizer
 
     val allContacts = repository.allContacts
 
     fun enroll() {
         viewModelScope.launch {
-            //TODO
+            repository.deleteAll()
+            synchronizer.uuid = ContactsSynchronizer.getNewUUID(prefs)
+
+            val contacts = synchronizer.getContacts()
+
+            repository.addFromRemote(contacts)
         }
     }
 
     fun refresh() {
         viewModelScope.launch {
-            //TODO
-        }
-    }
-
-    fun update(contact: Contact) {
-        viewModelScope.launch {
-            repository.updateContact(contact)
+            repository.synchronize()
         }
     }
 
     fun delete(contact: Contact) {
         viewModelScope.launch {
-            repository.deleteContact(contact)
+            repository.delete(contact)
         }
     }
 
     fun save(contact: Contact) {
         viewModelScope.launch {
-            repository.addContact(contact)
+            if (repository.exists(contact))
+                repository.update(contact)
+            else
+                repository.add(contact)
         }
     }
 

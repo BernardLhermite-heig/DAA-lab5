@@ -68,10 +68,10 @@ fun ContactItemView(contact: Contact, onClick: (Contact) -> Unit) {
             contentDescription = stringResource(id = R.string.screen_list_contacticon_ctndesc),
             colorFilter = ColorFilter.tint(
                 when (contact.status) {
-                    Status.NEW -> Color.Blue
-                    Status.MODIFIED -> Color.Yellow
+                    Status.NEW -> Color.Green
+                    Status.MODIFIED -> Color(0xFFEE8300)
                     Status.DELETED -> Color.Red
-                    Status.OK -> Color.Green
+                    Status.OK -> Color.Black
                 }
             )
         )
