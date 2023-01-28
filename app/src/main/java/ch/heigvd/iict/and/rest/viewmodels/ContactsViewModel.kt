@@ -7,7 +7,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import ch.heigvd.iict.and.rest.ContactsApplication
-import ch.heigvd.iict.and.rest.ContactsSynchronizer
 import ch.heigvd.iict.and.rest.models.Contact
 import kotlinx.coroutines.launch
 
@@ -20,51 +19,41 @@ class ContactsViewModel(application: ContactsApplication) :
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
-
+    private val repository = application.repository
+    val allContacts = repository.allContacts
 
     init {
         viewModelScope.launch {
-            val uuid = ContactsSynchronizer.getOrNewUUID(prefs)
-            synchronizer = ContactsSynchronizer(uuid)
+            repository.initSynchronizer(prefs)
         }
     }
 
-    private val repository = application.repository
-    private lateinit var synchronizer: ContactsSynchronizer
-
-    val allContacts = repository.allContacts
-
     fun enroll() {
         viewModelScope.launch {
-            repository.deleteAll()
-            synchronizer.uuid = ContactsSynchronizer.newUUID(prefs)
-
-            val contacts = synchronizer.getContacts()
-            repository.addFromRemote(contacts)
+            repository.enroll(prefs)
         }
     }
 
     fun refresh() {
         viewModelScope.launch {
-            repository.synchronize(synchronizer)
+            repository.synchronize()
         }
     }
 
     fun delete(contact: Contact) {
         viewModelScope.launch {
-            repository.delete(contact, synchronizer)
+            repository.delete(contact)
         }
     }
 
     fun save(contact: Contact) {
         viewModelScope.launch {
             if (contact.id != null && repository.exists(contact.id!!))
-                repository.update(contact, synchronizer)
+                repository.update(contact)
             else
-                repository.add(contact, synchronizer)
+                repository.add(contact)
         }
     }
-
 }
 
 class ContactsViewModelFactory(private val application: ContactsApplication) :

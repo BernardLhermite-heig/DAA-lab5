@@ -11,26 +11,32 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
 
-class ContactsSynchronizer(var uuid: UUID) {
+class ContactsSynchronizer(private val uuid: UUID) {
     companion object {
         private const val baseURL = "https://daa.iict.ch"
         private const val enrollURL = "$baseURL/enroll"
         private const val contactsURL = "$baseURL/contacts"
         private const val UUID_KEY = "UUID_KEY"
 
-        suspend fun getOrNewUUID(sharedPreferences: SharedPreferences): UUID =
+        suspend fun getOrNewUUID(sharedPreferences: SharedPreferences): Result<UUID> =
             withContext(Dispatchers.IO) {
                 val storedUUID = sharedPreferences.getString(UUID_KEY, null)?.let {
                     UUID.fromString(it)
                 }
-                storedUUID ?: newUUID(sharedPreferences)
+                if (storedUUID != null) {
+                    Result.success(storedUUID)
+                } else {
+                    newUUID(sharedPreferences)
+                }
             }
 
-        suspend fun newUUID(sharedPreferences: SharedPreferences): UUID =
+        suspend fun newUUID(sharedPreferences: SharedPreferences): Result<UUID> =
             withContext(Dispatchers.IO) {
-                val uuid = UUID.fromString(enrollURL.toURL().readText())
-                sharedPreferences.edit().putString(UUID_KEY, uuid.toString()).apply()
-                uuid
+                runCatching {
+                    val uuid = UUID.fromString(enrollURL.toURL().readText())
+                    sharedPreferences.edit().putString(UUID_KEY, uuid.toString()).apply()
+                    uuid
+                }
             }
     }
 
