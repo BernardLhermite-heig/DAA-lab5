@@ -10,7 +10,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -28,7 +27,6 @@ fun AppContact(
         factory = ContactsViewModelFactory(application)
     )
 ) {
-    val context = LocalContext.current
     val contacts: List<Contact> by contactsViewModel.allContacts.observeAsState(initial = emptyList())
     var editionMode by remember { mutableStateOf(false) }
     var selectedContact: Contact? by remember { mutableStateOf(null) }
@@ -74,7 +72,7 @@ fun AppContact(
                         }
                         ActionType.CANCEL -> {}
                     }
-                    
+
                     closeEdition()
                 }
             } else {

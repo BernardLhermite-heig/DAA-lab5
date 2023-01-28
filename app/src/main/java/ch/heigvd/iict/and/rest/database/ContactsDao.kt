@@ -7,8 +7,12 @@ import ch.heigvd.iict.and.rest.models.Status
 
 @Dao
 abstract class ContactsDao {
+    //    @Query("SELECT * FROM Contact WHERE status != :status")
+    @Query("SELECT * FROM Contact")
+    protected abstract fun getContactsWithout(): LiveData<List<Contact>>
+
     @Query("SELECT * FROM Contact WHERE status != :status")
-    protected abstract fun getContactsWithout(status: Status): LiveData<List<Contact>>
+    protected abstract suspend fun getContactsWithout2(status: Status): List<Contact>
 
     @Insert
     abstract fun insert(contact: Contact): Long
@@ -19,9 +23,9 @@ abstract class ContactsDao {
     @Delete
     abstract fun delete(contact: Contact)
 
-    fun getContacts(): LiveData<List<Contact>> = getContactsWithout(Status.DELETED)
+    fun getContacts(): LiveData<List<Contact>> = getContactsWithout() // Status.DELETED
 
-    fun getUnsynchronizedContacts(): LiveData<List<Contact>> = getContactsWithout(Status.OK)
+    suspend fun getUnsynchronizedContacts(): List<Contact> = getContactsWithout2(Status.OK)
 
     @Query("SELECT * FROM Contact WHERE id = :id")
     abstract fun getContactById(id: Long): Contact?

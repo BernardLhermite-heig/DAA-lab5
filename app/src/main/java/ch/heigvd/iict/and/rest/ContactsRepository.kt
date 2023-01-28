@@ -8,47 +8,69 @@ import kotlinx.coroutines.withContext
 
 class ContactsRepository(private val contactsDao: ContactsDao) {
     val allContacts = contactsDao.getContacts()
+    suspend fun add(contact: Contact, synchronizer: ContactsSynchronizer) =
+        withContext(Dispatchers.IO) {
+            if (!synchronizer.insert(contact)) {
+                contact.status = Status.NEW
+            }
+            contactsDao.insert(contact)
+        }
 
-    suspend fun add(contact: Contact) = withContext(Dispatchers.IO) {
-        contact.status = Status.NEW
-        contact.remoteId = null
+    suspend fun addFromRemote(contacts: List<Contact>) =
+        withContext(Dispatchers.IO) {
+            contactsDao.insertAll(*contacts.toTypedArray())
+        }
 
-        contactsDao.insert(contact)
-    }
+    suspend fun update(contact: Contact, synchronizer: ContactsSynchronizer) =
+        withContext(Dispatchers.IO) {
+            val synced: Boolean
 
-    suspend fun addFromRemote(contacts: List<Contact>) = withContext(Dispatchers.IO) {
-        contactsDao.insertAll(*contacts.map {
-            it.status = Status.OK
-            it.remoteId = it.id
-            it.id = null
-            it
-        }.toTypedArray())
-    }
+            if (contact.status == Status.NEW) {
+                synced = synchronizer.insert(contact)
+            } else {
+                synced = synchronizer.update(contact)
+                if (!synced) {
+                    contact.status = Status.MODIFIED
+                }
+            }
 
-    suspend fun update(contact: Contact) = withContext(Dispatchers.IO) {
-        contact.status = Status.MODIFIED
+            contactsDao.update(contact)
+            synced
+        }
 
-        contactsDao.update(contact)
-    }
-
-    suspend fun delete(contact: Contact) = withContext(Dispatchers.IO) {
-        contact.status = Status.DELETED
-
-        contactsDao.update(contact)
-
-
-    }
+    suspend fun delete(contact: Contact, synchronizer: ContactsSynchronizer) =
+        withContext(Dispatchers.IO) {
+            if (contact.status == Status.NEW || synchronizer.delete(contact.remoteId!!)) {
+                contactsDao.delete(contact)
+                true
+            } else {
+                contact.status = Status.DELETED
+                contactsDao.update(contact)
+                false
+            }
+        }
 
     suspend fun deleteAll() = withContext(Dispatchers.IO) {
         contactsDao.deleteAll()
     }
 
-    suspend fun exists(contact: Contact) = withContext(Dispatchers.IO) {
-        contactsDao.getContactById(contact.id!!) != null
-    }
+    suspend fun exists(id: Long) =
+        withContext(Dispatchers.IO) {
+            contactsDao.getContactById(id) != null
+        }
 
-    suspend fun synchronize() = withContext(Dispatchers.IO) {
-        TODO("Not yet implemented")
-        true
+    suspend fun synchronize(synchronizer: ContactsSynchronizer) = withContext(Dispatchers.IO) {
+        for (contact in contactsDao.getUnsynchronizedContacts()) {
+            val isOk = when (contact.status) {
+                Status.NEW -> update(contact, synchronizer)
+                Status.MODIFIED -> update(contact, synchronizer)
+                Status.DELETED -> delete(contact, synchronizer)
+                Status.OK -> continue
+            }
+
+            if (!isOk) {
+                return@withContext false
+            }
+        }
     }
 }

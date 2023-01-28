@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 class ContactsViewModel(application: ContactsApplication) :
     AndroidViewModel(application) {
     private val prefs = EncryptedSharedPreferences.create(
-        "nom_du_fichier",
+        this.javaClass.name,
         MasterKeys.getOrCreate(MasterKeys.AES256_GCM_SPEC),
         application,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
@@ -40,29 +40,28 @@ class ContactsViewModel(application: ContactsApplication) :
             synchronizer.uuid = ContactsSynchronizer.newUUID(prefs)
 
             val contacts = synchronizer.getContacts()
-
             repository.addFromRemote(contacts)
         }
     }
 
     fun refresh() {
         viewModelScope.launch {
-            repository.synchronize()
+            repository.synchronize(synchronizer)
         }
     }
 
     fun delete(contact: Contact) {
         viewModelScope.launch {
-            repository.delete(contact)
+            repository.delete(contact, synchronizer)
         }
     }
 
     fun save(contact: Contact) {
         viewModelScope.launch {
-            if (repository.exists(contact))
-                repository.update(contact)
+            if (contact.id != null && repository.exists(contact.id!!))
+                repository.update(contact, synchronizer)
             else
-                repository.add(contact)
+                repository.add(contact, synchronizer)
         }
     }
 
