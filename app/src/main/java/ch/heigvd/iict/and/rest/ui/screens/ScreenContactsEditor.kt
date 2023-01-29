@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.sp
 import ch.heigvd.iict.and.rest.R
 import ch.heigvd.iict.and.rest.models.Contact
 import ch.heigvd.iict.and.rest.models.PhoneType
-import ch.heigvd.iict.and.rest.models.Status
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -211,48 +210,3 @@ fun TextFieldWithLabel(label: String, value: String? = null, onChanged: (String)
         )
     }
 }
-
-val contacts = listOf(
-    Contact(
-        null,
-        null,
-        Status.NEW,
-        "Dupont",
-        "Roger",
-        null,
-        null,
-        "",
-        "1400",
-        "Yverdon",
-        PhoneType.HOME,
-        "+41 21 944 23 55"
-    ),
-    Contact(
-        null,
-        null,
-        Status.NEW,
-        "Dupond",
-        "Tatiana",
-        null,
-        null,
-        "",
-        "1000",
-        "Lausanne",
-        PhoneType.OFFICE,
-        "+41 24 763 34 12"
-    ),
-    Contact(
-        null,
-        null,
-        Status.NEW,
-        "Toto",
-        "Tata",
-        null,
-        null,
-        "",
-        "1400",
-        "Yverdon",
-        PhoneType.MOBILE,
-        "+41 21 456 25 36"
-    )
-)
