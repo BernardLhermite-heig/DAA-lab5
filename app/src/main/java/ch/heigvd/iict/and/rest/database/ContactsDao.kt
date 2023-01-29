@@ -34,12 +34,6 @@ abstract class ContactsDao {
     @Query("SELECT * FROM Contact WHERE id = :id")
     abstract fun getContactById(id: Long): Contact?
 
-    @Query("SELECT COUNT(*) FROM Contact")
-    abstract fun getCount(): Int
-
-    @Query("DELETE FROM Contact")
-    abstract fun clearAllContacts()
-
     @Query("DELETE FROM Contact")
     abstract fun deleteAll()
 
