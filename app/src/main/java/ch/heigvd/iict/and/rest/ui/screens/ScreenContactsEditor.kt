@@ -1,6 +1,7 @@
 package ch.heigvd.iict.and.rest.ui.screens
 
 import android.view.KeyEvent
+import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
@@ -19,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -45,6 +47,7 @@ fun ScreenContactEditor(
     contact: Contact? = null,
     onClose: (ActionType, Contact?) -> Unit
 ) {
+    val context = LocalContext.current
     val newContact = remember { contact?.copy() ?: Contact.empty() }
     val formattedBirthday = remember {
         mutableStateOf(
@@ -149,6 +152,11 @@ fun ScreenContactEditor(
                     newContact.birthday = Calendar.getInstance().apply {
                         set(date.year, date.monthValue - 1, date.dayOfMonth)
                     }
+                }
+
+                if (newContact.name.isEmpty()) {
+                    Toast.makeText(context, "Name is required", Toast.LENGTH_SHORT).show()
+                    return@Button
                 }
 
                 onClose(ActionType.SAVE, newContact)
