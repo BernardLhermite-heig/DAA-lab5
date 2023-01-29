@@ -1,6 +1,6 @@
 # Développement Android
 
-## Laboratoire n°4: Tâches asynchrones et Coroutines - Galerie d'images
+## Laboratoire n°5: Application communicante
 
 ### Friedli Jonathan, Marengo Stéphane, Silvestri Géraud
 
@@ -13,9 +13,9 @@ Le but de ce laboratoire est de développer une application android servant de g
 ## Détails d'implémentation
 
 
-### UI
+### **UI**
 
-**AppContact**:
+**AppContact:**
 ```kt
 @Composable
 fun AppContact(/* ... */) {
@@ -94,7 +94,8 @@ Pour gérer le mode d'édition ainsi que le contact sélectionné, nous avons aj
 var editionMode by remember { mutableStateOf(false) }
 var selectedContact: Contact? by remember { mutableStateOf(null) }
 ```
-**ScreenContactEditor**:
+
+**ScreenContactEditor:**
 ```kt
 enum class ActionType {
     CANCEL, DELETE, SAVE
@@ -210,8 +211,15 @@ if (newContact.name.isEmpty()) {
 ```
 
 
-### Modification du modèle
-**Contact**
+### **Mise en place de la synchronisation**
+
+Pour pouvoir effectuer des appels réseau, nous avons dû ajouter la permission `INTERNET` dans le fichier `AndroidManifest.xml`.
+
+```xml
+<uses-permission android:name="android.permission.INTERNET" />
+```
+
+**Contact:**
 ```kt
 @Serializable
 @Entity
@@ -258,7 +266,7 @@ enum class Status {
 ```
 Le model a été modifié afin de rajouter les champs `status` et `remoteId` afin de gérer la synchronisation. La sérialisation a été faite avec le plugin de [sérialisation de Kotlin](https://kotlinlang.org/docs/serialization.html). Nous avons créé une classe `CalendarSerializer` afin de sérialiser/désérialiser le champ `birthday`. L'annotation `@Transient` permet de ne pas sérialiser les champs `status` et `remoteId`.
 
-**ContactsDao**
+**ContactsDao:**
 ```kt
 @Dao
 abstract class ContactsDao {
@@ -285,7 +293,7 @@ Deux autres méthodes `getContacts` et `getUnsynchronizedContacts` permettant de
 
 La seconde récupère tous les contacts qui n'ont pas encore été synchronisés. Cette dernière ne retourne pas de `LiveData` car nous aurons besoin du résultat immédiatement.
 
-**ViewModel**
+**ContactsViewModel:**
 ```kt
 class ContactsViewModel(application: ContactsApplication) :
     AndroidViewModel(application) {
@@ -333,7 +341,7 @@ L'implémention du `ViewModel` est très basique et appelle simplement les méth
 Le `init` permet d'initialiser la synchronisation sur le `Repository`.
 
 
-**ContactsRepository**
+**ContactsRepository:**
 ```kt
 class ContactsRepository(private val contactsDao: ContactsDao) {
     private var synchronizer: ContactsSynchronizer? = null
@@ -429,7 +437,7 @@ Chacune des méthodes `add`, `update` et `delete` retourne un booléen indiquant
 Le `Repository` peut fonctionner avec ou sans `Synchronizer` permettant ainsi de facilement gérer les cas où le serveur n'est pas disponible pour nous fournir un UUID. Si le `Synchronizer` n'est pas initialisé dans la méthode `initSynchronizer`, ce dernier sera créé lors d'un `enrollment`.
 
 
-**ContactsSynchronizer**
+**ContactsSynchronizer:**
 ```kt
 class ContactsSynchronizer(private val uuid: UUID) {
     companion object {
