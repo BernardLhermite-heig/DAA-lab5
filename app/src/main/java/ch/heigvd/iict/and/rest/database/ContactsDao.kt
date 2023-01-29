@@ -5,6 +5,11 @@ import androidx.room.*
 import ch.heigvd.iict.and.rest.models.Contact
 import ch.heigvd.iict.and.rest.models.Status
 
+/**
+ * DAO gérant les contacts
+ *
+ * @author Marengo Stéphane, Friedli Jonathan, Silvestri Géraud
+ */
 @Dao
 abstract class ContactsDao {
     @Query("SELECT * FROM Contact WHERE status != :status")

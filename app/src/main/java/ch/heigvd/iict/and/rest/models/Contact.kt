@@ -14,6 +14,11 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+/**
+ * Modèle représentant un contact.
+ *
+ * @author Marengo Stéphane, Friedli Jonathan, Silvestri Géraud
+ */
 @Serializable
 @Entity
 data class Contact(
@@ -54,6 +59,9 @@ data class Contact(
         )
     }
 
+    /**
+     * Serializer pour la classe [Calendar].
+     */
     object CalendarSerializer : KSerializer<Calendar> {
         private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX")
 

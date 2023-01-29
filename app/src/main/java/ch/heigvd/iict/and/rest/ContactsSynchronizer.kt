@@ -11,6 +11,11 @@ import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
 
+/**
+ * Classe responsable de la synchronisation des contacts avec le serveur.
+ *
+ * @author Marengo Stéphane, Friedli Jonathan, Silvestri Géraud
+ */
 class ContactsSynchronizer(private val uuid: UUID) {
     companion object {
         private const val baseURL = "https://daa.iict.ch"
@@ -18,6 +23,11 @@ class ContactsSynchronizer(private val uuid: UUID) {
         private const val contactsURL = "$baseURL/contacts"
         private const val UUID_KEY = "UUID_KEY"
 
+        /**
+         * Récupère l'UUID stocké dans les préférences, ou en demande un nouveau si aucun n'est trouvé.
+         *
+         * @return l'UUID récupéré ou une erreur
+         */
         suspend fun getOrNewUUID(sharedPreferences: SharedPreferences): Result<UUID> =
             withContext(Dispatchers.IO) {
                 val storedUUID = sharedPreferences.getString(UUID_KEY, null)?.let {
@@ -30,6 +40,11 @@ class ContactsSynchronizer(private val uuid: UUID) {
                 }
             }
 
+        /**
+         * Demande un nouvel UUID au serveur.
+         *
+         * @return l'UUID récupéré ou une erreur
+         */
         suspend fun newUUID(sharedPreferences: SharedPreferences): Result<UUID> =
             withContext(Dispatchers.IO) {
                 runCatching {
@@ -40,6 +55,11 @@ class ContactsSynchronizer(private val uuid: UUID) {
             }
     }
 
+    /**
+     * Récupère les contacts du serveur.
+     *
+     * @return la liste des contacts récupérés ou une liste vide en cas d'erreur
+     */
     suspend fun getContacts(): List<Contact> = withContext(Dispatchers.IO) {
         val (code, json) = execute(contactsURL.toURL(), "GET").getOrElse {
             return@withContext emptyList<Contact>()
@@ -57,12 +77,22 @@ class ContactsSynchronizer(private val uuid: UUID) {
         }
     }
 
+    /**
+     * Crée une nouvelle requête HTTP en y ajoutant l'UUID dans le header.
+     *
+     * @return la HttpURLConnection correspondante
+     */
     private fun newRequest(url: URL, method: String): HttpURLConnection =
         (url.openConnection() as HttpURLConnection).apply {
             setRequestProperty("X-UUID", uuid.toString())
             requestMethod = method
         }
 
+    /**
+     * Exécute une requête HTTP et retourne le code de réponse et le contenu de la réponse.
+     *
+     * @return le code de réponse et le contenu de la réponse ou une erreur
+     */
     private suspend fun execute(url: URL, method: String): Result<Pair<Int, String>> =
         withContext(Dispatchers.IO) {
             newRequest(url, method).runCatching {
@@ -70,6 +100,11 @@ class ContactsSynchronizer(private val uuid: UUID) {
             }
         }
 
+    /**
+     * Exécute une requête HTTP avec un payload et retourne le code de réponse et le contenu de la réponse.
+     *
+     * @return le code de réponse et le contenu de la réponse ou une erreur
+     */
     private suspend fun execute(
         url: URL,
         method: String,
@@ -85,6 +120,11 @@ class ContactsSynchronizer(private val uuid: UUID) {
         }
     }
 
+    /**
+     * Tente d'insérer le contact donné sur le serveur.
+     *
+     * @return true si l'insertion a réussi, false sinon
+     */
     suspend fun insert(contact: Contact): Boolean = withContext(Dispatchers.IO) {
         val id = contact.id
         contact.id = null
@@ -107,6 +147,11 @@ class ContactsSynchronizer(private val uuid: UUID) {
         true
     }
 
+    /**
+     * Tente de mettre à jour le contact donné sur le serveur.
+     *
+     * @return true si la mise à jour a réussi, false sinon
+     */
     suspend fun update(contact: Contact): Boolean = withContext(Dispatchers.IO) {
         val id = contact.id
         contact.id = contact.remoteId
@@ -133,6 +178,11 @@ class ContactsSynchronizer(private val uuid: UUID) {
         true
     }
 
+    /**
+     * Tente de supprimer le contact donné sur le serveur.
+     *
+     * @return true si la suppression a réussi, false sinon
+     */
     suspend fun delete(id: Long): Boolean = withContext(Dispatchers.IO) {
         val (code, _) = execute("$contactsURL/$id".toURL(), "DELETE").getOrElse {
             return@withContext false
@@ -142,6 +192,9 @@ class ContactsSynchronizer(private val uuid: UUID) {
     }
 }
 
+/**
+ * Convertit une chaîne de caractères en URL.
+ */
 private fun String.toURL(): URL {
     return URL(this)
 }

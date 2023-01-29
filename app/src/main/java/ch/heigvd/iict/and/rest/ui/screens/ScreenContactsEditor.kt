@@ -34,13 +34,20 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+/**
+ * Détermine le type d'action lors de la fermeture de l'écran d'édition.
+ */
 enum class ActionType {
     CANCEL, DELETE, SAVE
 }
 
 private val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.yyyy")
 
-
+/**
+ * Écran d'édition d'un contact.
+ *
+ * @author Marengo Stéphane, Friedli Jonathan, Silvestri Géraud
+ */
 @Composable
 fun ScreenContactEditor(
     contact: Contact? = null,
@@ -167,6 +174,13 @@ fun ScreenContactEditor(
     }
 }
 
+/**
+ * Champ de texte avec un label.
+ *
+ * @param label Label du champ de texte.
+ * @param value Valeur du champ de texte.
+ * @param onChanged Événement déclenché lors de la modification de la valeur.
+ */
 @Composable
 fun TextFieldWithLabel(label: String, value: String? = null, onChanged: (String) -> Unit = {}) {
     val focusManager = LocalFocusManager.current

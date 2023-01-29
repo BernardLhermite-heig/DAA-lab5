@@ -10,6 +10,11 @@ import ch.heigvd.iict.and.rest.ContactsApplication
 import ch.heigvd.iict.and.rest.models.Contact
 import kotlinx.coroutines.launch
 
+/**
+ * ViewModel gérant les interactions entre la vue et les contacts.
+ *
+ * @author Marengo Stéphane, Friedli Jonathan, Silvestri Géraud
+ */
 class ContactsViewModel(application: ContactsApplication) :
     AndroidViewModel(application) {
     private val prefs = EncryptedSharedPreferences.create(
@@ -28,24 +33,36 @@ class ContactsViewModel(application: ContactsApplication) :
         }
     }
 
+    /**
+     * Récupère de nouvelles données depuis le serveur.
+     */
     fun enroll() {
         viewModelScope.launch {
             repository.enroll(prefs)
         }
     }
 
+    /**
+     * Synchronise les données avec le serveur.
+     */
     fun refresh() {
         viewModelScope.launch {
             repository.synchronize()
         }
     }
 
+    /**
+     * Supprime un contact de la base de données.
+     */
     fun delete(contact: Contact) {
         viewModelScope.launch {
             repository.delete(contact)
         }
     }
 
+    /**
+     * Enregistre un contact dans la base de données.
+     */
     fun save(contact: Contact) {
         viewModelScope.launch {
             if (contact.id != null && repository.exists(contact.id!!))
@@ -56,6 +73,9 @@ class ContactsViewModel(application: ContactsApplication) :
     }
 }
 
+/**
+ * Factory permettant de créer une instance de ContactsViewModel.
+ */
 class ContactsViewModelFactory(private val application: ContactsApplication) :
     ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

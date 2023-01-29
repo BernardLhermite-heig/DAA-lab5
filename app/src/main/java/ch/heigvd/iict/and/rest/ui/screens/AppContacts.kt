@@ -20,6 +20,11 @@ import ch.heigvd.iict.and.rest.models.Contact
 import ch.heigvd.iict.and.rest.viewmodels.ContactsViewModel
 import ch.heigvd.iict.and.rest.viewmodels.ContactsViewModelFactory
 
+/**
+ * Point d'entrée de l'application
+ *
+ * @author Marengo Stéphane, Friedli Jonathan, Silvestri Géraud
+ */
 @Composable
 fun AppContact(
     application: ContactsApplication,
