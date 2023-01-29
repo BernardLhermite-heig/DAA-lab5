@@ -138,7 +138,14 @@ fun ScreenContactEditor(
 
             Button(onClick = {
                 if (formattedBirthday.value.isNotEmpty()) {
-                    val date = LocalDate.parse(formattedBirthday.value, dateFormatter)
+                    val date = runCatching {
+                        LocalDate.parse(
+                            formattedBirthday.value,
+                            dateFormatter
+                        )
+                    }.getOrElse {
+                        LocalDate.now()
+                    }
                     newContact.birthday = Calendar.getInstance().apply {
                         set(date.year, date.monthValue - 1, date.dayOfMonth)
                     }
